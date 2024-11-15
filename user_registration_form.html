@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            font-size: 14px;
+            text-align: center;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .result.success {
+            background-color: #e0ffe0;
+            color: #2d6a2c;
+        }
+        .result.error {
+            background-color: #ffe0e0;
+            color: #a52a2a;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>User Registration</h2>
+    <form id="register-form">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">Register</button>
+    </form>
+
+    <div class="error" id="register-error-message"></div>
+</div>
+
+<div class="container">
+    <h2>Get User Details</h2>
+    <form id="get-user-form">
+        <label for="user-id">User ID</label>
+        <input type="number" id="user-id" name="user_id" required>
+
+        <button type="submit">Get User Details</button>
+    </form>
+
+    <div id="user-details" class="result"></div>
+    <div class="error" id="user-error-message"></div>
+</div>
+
+<div class="container">
+    <h2>Check Book Availability</h2>
+    <form id="check-book-form">
+        <label for="book-id">Book ID</label>
+        <input type="number" id="book-id" name="book_id" required>
+
+        <label for="check-user-id">User ID</label>
+        <input type="number" id="check-user-id" name="user_id" required>
+
+        <button type="submit">Check Availability</button>
+    </form>
+
+    <div id="book-availability" class="result"></div>
+    <div class="error" id="book-error-message"></div>
+</div>
+
+<script>
+    // Register user
+    document.getElementById("register-form").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const username = document.getElementById("username").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        try {
+            const response = await fetch("http://localhost:8001/users/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert("User registered successfully!");
+            } else {
+                throw new Error(result.detail || "Registration failed.");
+            }
+        } catch (error) {
+            document.getElementById("register-error-message").innerText = error.message;
+        }
+    });
+
+    // Get user details by ID
+    document.getElementById("get-user-form").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const userId = document.getElementById("user-id").value;
+
+        try {
+            const response = await fetch(`http://localhost:8001/users/${userId}`);
+
+            if (!response.ok) {
+                throw new Error("User not found.");
+            }
+
+            const user = await response.json();
+            document.getElementById("user-details").innerHTML = `
+                <strong>Username:</strong> ${user.username}<br>
+                <strong>Email:</strong> ${user.email}<br>
+                <strong>Password:</strong> ${user.password}
+            `;
+            document.getElementById("user-details").classList.add("success");
+            document.getElementById("user-details").classList.remove("error");
+        } catch (error) {
+            document.getElementById("user-error-message").innerText = error.message;
+            document.getElementById("user-details").classList.add("error");
+            document.getElementById("user-details").classList.remove("success");
+        }
+    });
+
+    // Check book availability
+    document.getElementById("check-book-form").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const bookId = document.getElementById("book-id").value;
+        const userId = document.getElementById("check-user-id").value;
+
+        try {
+            const response = await fetch(`http://localhost:8001/users/${userId}/check_availability/${bookId}`, {
+                method: "POST",
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                document.getElementById("book-availability").innerHTML = `
+                    ${result.message}
+                `;
+                document.getElementById("book-availability").classList.add("success");
+                document.getElementById("book-availability").classList.remove("error");
+            } else {
+                throw new Error(result.message || "Error checking availability.");
+            }
+        } catch (error) {
+            document.getElementById("book-error-message").innerText = error.message;
+            document.getElementById("book-availability").classList.add("error");
+            document.getElementById("book-availability").classList.remove("success");
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+
+
+uvicorn user_management:app --host 0.0.0.0 --port 8001 --reload
+http://localhost:8001/docs
+
+
+docker buildx build -t user-management-image .
+docker run -d -p 8001:8001  user-management-image
+docker tag user-management-image:latest sanman2020/user-management-image:latest
+docker push sanman2020/user-management-image:latest
+
+
+minikube version
+minikube start --driver=docker
+minikube status
+kubectl cluster-info (Verify Minikube is running by checking the Kubernetes status:)
+
+kubectl apply -f user_management_deployment.yml
+kubectl apply -f user_management_service.yml
+kubectl apply -f user_sqlite_pvc.yml
+
+kubectl get pods
+kubectl get deployments
+
+
+kubectl get services
+minikube ip
+minikube dashboard

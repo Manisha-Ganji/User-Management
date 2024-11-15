@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-management
+  template:
+    metadata:
+      labels:
+        app: user-management
+    spec:
+      containers:
+      - name: user-management
+        image: sanman2020/user-management-image:latest  # Replace with your actual image
+        ports:
+        - containerPort: 8001
+        env:
+        - name: BOOK_SERVICE_URL
+          value: "http://book-management:8002"  # Use the internal service name for communication between services
+        volumeMounts:
+        - name: sqlite-data
+          mountPath: /app/sqlite-data  # Mount a persistent volume for SQLite database
+      volumes:
+      - name: sqlite-data
+        persistentVolumeClaim:
+          claimName: sqlite-pvc
